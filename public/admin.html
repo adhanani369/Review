@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .filters {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .filter-group {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .responses-table {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Survey Admin Dashboard</h1>
+        
+        <!-- Statistics -->
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalResponses">-</div>
+                <div class="stat-label">Total Responses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="conditionA">-</div>
+                <div class="stat-label">Condition A (Democratic)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="conditionB">-</div>
+                <div class="stat-label">Condition B (Republican)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayResponses">-</div>
+                <div class="stat-label">Today's Responses</div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="conditionFilter">Condition:</label>
+                <select id="conditionFilter">
+                    <option value="">All Conditions</option>
+                    <option value="A">Democratic</option>
+                    <option value="B">Republican</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="btn" onclick="loadResponses()">Filter</button>
+                <button class="btn" onclick="clearFilters()">Clear</button>
+            </div>
+        </div>
+        
+        <!-- Export Buttons -->
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn btn-success" onclick="exportData()">📊 Export All Data (CSV)</button>
+            <button class="btn" onclick="exportAllJSON()">📄 Export Combined JSON</button>
+            <p style="margin-top: 10px; color: #666; font-style: italic;">
+                💡 For individual participant files, use the "Download JSON" button in each row below
+            </p>
+        </div>
+        
+        <!-- Error Display -->
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <!-- Loading -->
+        <div id="loading" class="loading">Loading responses...</div>
+        
+        <!-- Responses Table -->
+        <div class="responses-table" id="responsesContainer" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Participant ID</th>
+                        <th>Prolific ID</th>
+                        <th>Condition</th>
+                        <th>Political Views</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Education</th>
+                        <th>ZIP Code</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="responsesBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display: none;">
+            <button class="btn" id="prevBtn" onclick="previousPage()">Previous</button>
+            <span id="pageInfo"></span>
+            <button class="btn" id="nextBtn" onclick="nextPage()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        
+        // Load initial data
+        window.addEventListener('load', function() {
+            loadStats();
+            loadResponses();
+        });
+        
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/list-data');
+                if (!response.ok) throw new Error('Failed to fetch stats');
+                
+                const data = await response.json();
+                const files = data.files;
+                
+                // Calculate statistics
+                const total = files.length;
+                const conditionA = files.filter(r => r.condition === 'A').length;
+                const conditionB = files.filter(r => r.condition === 'B').length;
+                
+                const today = new Date().toDateString();
+                const todayCount = files.filter(r => 
+                    new Date(r.created_at || r.created).toDateString() === today
+                ).length;
+                
+                // Update display
+                document.getElementById('totalResponses').textContent = total;
+                document.getElementById('conditionA').textContent = conditionA;
+                document.getElementById('conditionB').textContent = conditionB;
+                document.getElementById('todayResponses').textContent = todayCount;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                showError('Failed to load statistics');
+            }
+        }
+        
+        async function loadResponses() {
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/list-data');
+                if (!response.ok) throw new Error('Failed to fetch responses');
+                
+                const data = await response.json();
+                let files = data.files;
+                
+                // Apply filters
+                const condition = document.getElementById('conditionFilter').value;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                if (condition) {
+                    files = files.filter(f => f.condition === condition);
+                }
+                
+                if (startDate) {
+                    const start = new Date(startDate);
+                    files = files.filter(f => new Date(f.created_at || f.created) >= start);
+                }
+                
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999); // End of day
+                    files = files.filter(f => new Date(f.created_at || f.created) <= end);
+                }
+                
+                displayResponses(files);
+                updatePagination(1, 1, files.length);
+                
+            } catch (error) {
+                console.error('Error loading responses:', error);
+                showError('Failed to load survey responses');
+            }
+        }
+        
+        function displayResponses(responses) {
+            const tbody = document.getElementById('responsesBody');
+            tbody.innerHTML = '';
+            
+            responses.forEach(response => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${response.participant_id}</td>
+                    <td>${response.prolific_id || 'N/A'}</td>
+                    <td>${response.condition === 'A' ? 'Democratic' : 'Republican'}</td>
+                    <td>${response.political_views || 'N/A'}</td>
+                    <td>${response.age || 'N/A'}</td>
+                    <td>${response.gender || 'N/A'}</td>
+                    <td>${response.education || 'N/A'}</td>
+                    <td>${response.zip_code || 'N/A'}</td>
+                    <td>${new Date(response.created || response.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn" style="font-size: 12px; padding: 5px 10px;" 
+                                onclick="downloadIndividualFile('${response.filename}')">
+                            📄 Download JSON
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            hideLoading();
+            document.getElementById('responsesContainer').style.display = 'block';
+        }
+        
+        function updatePagination(current, total, totalResponses) {
+            currentPage = current;
+            totalPages = total;
+            
+            document.getElementById('pageInfo').textContent = 
+                `Page ${current} of ${total} (${totalResponses} total responses)`;
+            
+            document.getElementById('prevBtn').disabled = current <= 1;
+            document.getElementById('nextBtn').disabled = current >= total;
+            
+            document.getElementById('pagination').style.display = 'block';
+        }
+        
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadResponses();
+            }
+        }
+        
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadResponses();
+            }
+        }
+        
+        function clearFilters() {
+            document.getElementById('conditionFilter').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            currentPage = 1;
+            loadResponses();
+        }
+        
+
+
+        async function exportData() {
+            try {
+                const response = await fetch('/api/admin/export');
+                if (!response.ok) throw new Error('Failed to export data');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `survey_responses_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showError('Failed to export data');
+            }
+        }
+
+        async function exportAllJSON() {
+            try {
+                const response = await fetch('/api/export-all');
+                if (!response.ok) throw new Error('Failed to export JSON data');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `all_survey_responses_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error exporting JSON data:', error);
+                showError('Failed to export JSON data');
+            }
+        }
+
+        async function downloadIndividualFile(filename) {
+            try {
+                const response = await fetch(`/api/download/${filename}`);
+                if (!response.ok) throw new Error('Failed to download file');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                showError(`Failed to download ${filename}`);
+            }
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('responsesContainer').style.display = 'none';
+            document.getElementById('pagination').style.display = 'none';
+            hideError();
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            hideLoading();
+        }
+        
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
