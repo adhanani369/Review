@@ -72,20 +72,20 @@
         
         .scale-group {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: flex-start;
             margin: 15px 0;
-            flex-wrap: nowrap;
             gap: 10px;
         }
         
         .scale-item {
-            text-align: center;
-            flex: 1;
-            padding: 10px 5px;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
             border-radius: 5px;
             transition: background-color 0.2s;
-            min-width: 0;
+            width: 100%;
+            max-width: 400px;
         }
         
         .scale-item:hover {
@@ -93,9 +93,18 @@
         }
         
         .scale-item input[type="radio"] {
-            display: block;
-            margin: 0 auto 8px auto;
+            margin-right: 12px;
         }
+        
+        .scale-item label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+
         
         .scale-item label {
             font-size: 12px;
@@ -337,13 +346,12 @@
         
         @media (max-width: 768px) {
             .scale-group {
-                flex-direction: row;
-                flex-wrap: wrap;
+                flex-direction: column;
             }
             
             .scale-item {
-                width: calc(50% - 10px);
-                margin: 5px;
+                width: 100%;
+                margin: 0;
             }
             
             .container {
@@ -416,31 +424,31 @@
                 <div class="scale-group">
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="1" required>
-                        <label>1<br>Very liberal</label>
+                        <label>1 - Very liberal</label>
                     </div>
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="2">
-                        <label>2<br>Liberal</label>
+                        <label>2 - Liberal</label>
                     </div>
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="3">
-                        <label>3<br>Somewhat liberal</label>
+                        <label>3 - Somewhat liberal</label>
                     </div>
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="4">
-                        <label>4<br>Moderate</label>
+                        <label>4 - Moderate</label>
                     </div>
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="5">
-                        <label>5<br>Somewhat conservative</label>
+                        <label>5 - Somewhat conservative</label>
                     </div>
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="6">
-                        <label>6<br>Conservative</label>
+                        <label>6 - Conservative</label>
                     </div>
                     <div class="scale-item">
                         <input type="radio" name="political_views" value="7">
-                        <label>7<br>Very conservative</label>
+                        <label>7 - Very conservative</label>
                     </div>
                 </div>
                 <div class="error" id="politicalError"></div>
@@ -523,31 +531,31 @@
                     <div class="scale-group">
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="1" required>
-                            <label>1<br>Much less<br>comfortable</label>
+                            <label>1 - Much less comfortable</label>
                         </div>
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="2">
-                            <label>2<br>Less<br>comfortable</label>
+                            <label>2 - Less comfortable</label>
                         </div>
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="3">
-                            <label>3<br>Slightly less<br>comfortable</label>
+                            <label>3 - Slightly less comfortable</label>
                         </div>
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="4">
-                            <label>4<br>About<br>the same</label>
+                            <label>4 - About the same</label>
                         </div>
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="5">
-                            <label>5<br>Slightly more<br>comfortable</label>
+                            <label>5 - Slightly more comfortable</label>
                         </div>
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="6">
-                            <label>6<br>More<br>comfortable</label>
+                            <label>6 - More comfortable</label>
                         </div>
                         <div class="scale-item">
                             <input type="radio" name="followup_comfort" value="7">
-                            <label>7<br>Much more<br>comfortable</label>
+                            <label>7 - Much more comfortable</label>
                         </div>
                     </div>
                     <div class="error" id="followUpError"></div>
